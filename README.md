@@ -15,4 +15,6 @@
 `npm run start` — запускает сервер   
 `npm run dev` — запускает сервер с hot-reload
 
+
+у тестов странная ошибка, поддержка сказала, что могу отправить код без автотество 
 https://github.com/olegolegsy/express-mesto-gha
