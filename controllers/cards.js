@@ -18,6 +18,7 @@ const handelError400 = (res) => {
   res.status(ERROR_400).send({ message: 'Некорректный _id карточки' });
 };
 
+// get 500
 const getCards = (req, res) => {
   Card.find({})
     .populate(['owner', 'likes'])
@@ -25,6 +26,7 @@ const getCards = (req, res) => {
     .catch(() => handelError500(res));
 };
 
+// post 400 500
 const addNewCard = (req, res) => {
   const { name, link } = req.body;
 
@@ -32,7 +34,7 @@ const addNewCard = (req, res) => {
     .then((card) => {
       Card.findById(card._id)
         .populate('owner')
-        .then((data) => res.send(data))
+        .then((data) => res.status(201).send(data))
         .catch(() => handelError404(res));
     })
     .catch((err) => {
@@ -44,65 +46,73 @@ const addNewCard = (req, res) => {
     });
 };
 
+// delete 404 500
 const delCard = (req, res) => {
-  const id = req.params.cardId;
-  if (id.length === 24) {
-    Card.findByIdAndRemove(id)
-      .then((card) => {
-        if (!card) {
-          handelError404(res);
-        } else {
-          res.send({ message: 'Карточка удалена' });
-        }
-      })
-      .catch(() => handelError404(res));
-  } else {
-    handelError400(res);
-  }
+  const cardId = req.params.cardId;
+
+  Card.findByIdAndDelete(cardId)
+    .orFail(new Error())
+    .then(() => {
+      res.send({ message: 'Карточка удалена' });
+    })
+    .catch((err) => {
+      // прочитал твой комментарий, но по ТЗ тут 404 ошибка, а не 400
+      if (err.name === 'CastError') {
+        handelError404(res);
+      } else {
+        handelError500(res);
+      }
+    });
 };
 
+// 400 404 500
 const addLike = (req, res) => {
-  const id = req.params.cardId;
-  if (id.length === 24) {
-    Card.findByIdAndUpdate(
-      id,
-      { $addToSet: { likes: req.user._id } },
-      { new: true },
-    )
-      .populate(['owner', 'likes'])
-      .then((card) => {
-        if (!card) {
-          handelError404(res);
-        } else {
-          res.send(card);
-        }
-      })
-      .catch(() => handelError404(res));
-  } else {
-    handelError400(res);
-  }
+  const cardId = req.params.cardId;
+
+  Card.findByIdAndUpdate(
+    cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true }
+  )
+    .orFail(new Error())
+    .populate(['owner', 'likes'])
+    .then((card) => {
+      res.send(card);
+    })
+    .catch((err) => {
+      if (err.name === validError) {
+        handelError400(res, err);
+      } else if (err.name === 'CastError') {
+        handelError404(res);
+      } else {
+        handelError500(res);
+      }
+    });
 };
 
+// 400 404 500
 const removeLike = (req, res) => {
-  const id = req.params.cardId;
-  if (id.length === 24) {
-    Card.findByIdAndUpdate(
-      id,
-      { $pull: { likes: req.user._id } },
-      { new: true },
-    )
-      .populate(['owner', 'likes'])
-      .then((card) => {
-        if (!card) {
-          handelError404(res);
-        } else {
-          res.send(card);
-        }
-      })
-      .catch(() => handelError404(res));
-  } else {
-    handelError400(res);
-  }
+  const cardId = req.params.cardId;
+
+  Card.findByIdAndUpdate(
+    cardId,
+    { $pull: { likes: req.user._id } },
+    { new: true }
+  )
+    .orFail(new Error())
+    .populate(['owner', 'likes'])
+    .then((card) => {
+      res.send(card);
+    })
+    .catch((err) => {
+      if (err.name === validError) {
+        handelError400(res, err);
+      } else if (err.name === 'CastError') {
+        handelError404(res);
+      } else {
+        handelError500(res);
+      }
+    });
 };
 
 module.exports = {
