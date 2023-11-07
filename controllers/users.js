@@ -41,7 +41,6 @@ const getUserById = (req, res) => {
       res.send(user);
     })
     .catch((err) => {
-      console.log(err);
       if (err.message === notFoundError) {
         handelError404(res);
       } else {
@@ -72,12 +71,11 @@ const editUserInfo = (req, res) => {
   User.findByIdAndUpdate(
     req.user._id,
     { name, about },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   )
     .orFail(new Error(notFoundError))
     .then((user) => res.send(user))
     .catch((err) => {
-      console.log(err);
       if (err.name === castError) {
         handelError400(res, err);
       } else if (err.message === notFoundError) {
@@ -95,12 +93,11 @@ const editUserAvatar = (req, res) => {
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
-    { new: 'true', runValidators: true }
+    { new: 'true', runValidators: true },
   )
     .orFail(new Error(notFoundError))
     .then((user) => res.send(user))
     .catch((err) => {
-      console.log(err);
       if (err.name === castError) {
         handelError400(res, err);
       } else if (err.message === notFoundError) {

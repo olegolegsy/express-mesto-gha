@@ -50,7 +50,7 @@ const addNewCard = (req, res) => {
 
 // delete 404 500
 const delCard = (req, res) => {
-  const cardId = req.params.cardId;
+  const { cardId } = req.params;
 
   Card.findByIdAndDelete(cardId)
     .orFail(new Error(notFoundError))
@@ -68,12 +68,12 @@ const delCard = (req, res) => {
 
 // 400 404 500
 const addLike = (req, res) => {
-  const cardId = req.params.cardId;
+  const { cardId } = req.params;
 
   Card.findByIdAndUpdate(
     cardId,
     { $addToSet: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .orFail(new Error(notFoundError))
     .populate(['owner', 'likes'])
@@ -93,12 +93,12 @@ const addLike = (req, res) => {
 
 // 400 404 500
 const removeLike = (req, res) => {
-  const cardId = req.params.cardId;
+  const { cardId } = req.params;
 
   Card.findByIdAndUpdate(
     cardId,
     { $pull: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .orFail(new Error(notFoundError))
     .populate(['owner', 'likes'])
