@@ -5,6 +5,8 @@ const ERROR_404 = 404;
 const ERROR_400 = 400;
 
 const validError = 'ValidationError';
+const castError = 'CastError';
+const notFoundError = 'NotFound';
 
 const handelError500 = (res) => {
   res.status(ERROR_500).send({ message: 'На сервере произошла ошибка' });
@@ -33,20 +35,36 @@ const getUsers = (req, res) => {
 
 // get 404 500
 const getUserById = (req, res) => {
+  console.log(req.params.userId);
   User.findById(req.params.userId)
-    .orFail(new Error())
+    .orFail(new Error(notFoundError))
     .then((user) => {
       res.send(user);
     })
     .catch((err) => {
       console.log(err);
-      if (err.name === 'CastError') {
+      if (err.message === notFoundError) {
         handelError404(res);
       } else {
         handelError500(res);
       }
     });
 };
+
+// async function getUserById(req, res) {
+//   try {
+//     const user = await User.findById(req.params.userId).orFail(
+//       new Error('NotFound')
+//     );
+//     res.send(user);
+//   } catch (err) {
+//     if (err.message === 'NotFound') {
+//       handelError404(res);
+//     } else {
+//       handelError500(res);
+//     }
+//   }
+// }
 
 // post 400 500
 const addNewUser = (req, res) => {
@@ -56,7 +74,7 @@ const addNewUser = (req, res) => {
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       if (err.name === validError) {
-        handelError400(res, err);
+        handelError400(res);
       } else {
         handelError500(res);
       }
@@ -72,12 +90,12 @@ const editUserInfo = (req, res) => {
     { name, about },
     { new: true, runValidators: true }
   )
-    .orFail(new Error())
+    .orFail(new Error(notFoundError))
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === validError) {
-        handelError400(res, err);
-      } else if (err.name === 'CastError') {
+      if (err.name === castError) {
+        handelError400(res);
+      } else if (err.message === notFoundError) {
         handelError404(res);
       } else {
         handelError500(res);
@@ -94,12 +112,12 @@ const editUserAvatar = (req, res) => {
     { avatar },
     { new: 'true', runValidators: true }
   )
-    .orFail(new Error())
+    .orFail(new Error(notFoundError))
     .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === validError) {
-        handelError400(res, err);
-      } else if (err.name === 'CastError') {
+      if (err.name === castError) {
+        handelError400(res);
+      } else if (err.message === notFoundError) {
         handelError404(res);
       } else {
         handelError500(res);

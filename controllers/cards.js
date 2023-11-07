@@ -5,6 +5,8 @@ const ERROR_404 = 404;
 const ERROR_400 = 400;
 
 const validError = 'ValidationError';
+const castError = 'CastError';
+const notFoundError = 'NotFound';
 
 const handelError500 = (res) => {
   res.status(ERROR_500).send({ message: 'На сервере произошла ошибка' });
@@ -51,13 +53,12 @@ const delCard = (req, res) => {
   const cardId = req.params.cardId;
 
   Card.findByIdAndDelete(cardId)
-    .orFail(new Error())
+    .orFail(new Error(notFoundError))
     .then(() => {
       res.send({ message: 'Карточка удалена' });
     })
     .catch((err) => {
-      // прочитал твой комментарий, но по ТЗ тут 404 ошибка, а не 400
-      if (err.name === 'CastError') {
+      if (err.message === notFoundError) {
         handelError404(res);
       } else {
         handelError500(res);
@@ -74,16 +75,20 @@ const addLike = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
-    .orFail(new Error())
+    .orFail(new Error(notFoundError))
     .populate(['owner', 'likes'])
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
-      if (err.name === validError) {
-        handelError400(res, err);
-      } else if (err.name === 'CastError') {
+      console.log('=========================================');
+      console.log(err);
+      console.log('name', err.name);
+      console.log('message', err.message);
+      if (err.message === notFoundError) {
         handelError404(res);
+      } else if (err.name === castError) {
+        handelError400(res);
       } else {
         handelError500(res);
       }
@@ -99,16 +104,20 @@ const removeLike = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true }
   )
-    .orFail(new Error())
+    .orFail(new Error(notFoundError))
     .populate(['owner', 'likes'])
     .then((card) => {
       res.send(card);
     })
     .catch((err) => {
-      if (err.name === validError) {
-        handelError400(res, err);
-      } else if (err.name === 'CastError') {
+      console.log('=========================================');
+      console.log(err);
+      console.log('name', err.name);
+      console.log('message', err.message);
+      if (err.message === notFoundError) {
         handelError404(res);
+      } else if (err.name === castError) {
+        handelError400(res);
       } else {
         handelError500(res);
       }
