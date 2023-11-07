@@ -81,10 +81,6 @@ const addLike = (req, res) => {
       res.send(card);
     })
     .catch((err) => {
-      console.log('=========================================');
-      console.log(err);
-      console.log('name', err.name);
-      console.log('message', err.message);
       if (err.message === notFoundError) {
         handelError404(res);
       } else if (err.name === castError) {
@@ -110,10 +106,6 @@ const removeLike = (req, res) => {
       res.send(card);
     })
     .catch((err) => {
-      console.log('=========================================');
-      console.log(err);
-      console.log('name', err.name);
-      console.log('message', err.message);
       if (err.message === notFoundError) {
         handelError404(res);
       } else if (err.name === castError) {

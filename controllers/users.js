@@ -50,21 +50,6 @@ const getUserById = (req, res) => {
     });
 };
 
-// async function getUserById(req, res) {
-//   try {
-//     const user = await User.findById(req.params.userId).orFail(
-//       new Error('NotFound')
-//     );
-//     res.send(user);
-//   } catch (err) {
-//     if (err.message === 'NotFound') {
-//       handelError404(res);
-//     } else {
-//       handelError500(res);
-//     }
-//   }
-// }
-
 // post 400 500
 const addNewUser = (req, res) => {
   const { name, about, avatar } = req.body;
@@ -73,7 +58,7 @@ const addNewUser = (req, res) => {
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       if (err.name === validError) {
-        handelError400(res);
+        handelError400(res, err);
       } else {
         handelError500(res);
       }
@@ -92,8 +77,9 @@ const editUserInfo = (req, res) => {
     .orFail(new Error(notFoundError))
     .then((user) => res.send(user))
     .catch((err) => {
+      console.log(err);
       if (err.name === castError) {
-        handelError400(res);
+        handelError400(res, err);
       } else if (err.message === notFoundError) {
         handelError404(res);
       } else {
@@ -114,8 +100,9 @@ const editUserAvatar = (req, res) => {
     .orFail(new Error(notFoundError))
     .then((user) => res.send(user))
     .catch((err) => {
+      console.log(err);
       if (err.name === castError) {
-        handelError400(res);
+        handelError400(res, err);
       } else if (err.message === notFoundError) {
         handelError404(res);
       } else {
