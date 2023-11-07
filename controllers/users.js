@@ -35,7 +35,6 @@ const getUsers = (req, res) => {
 
 // get 404 500
 const getUserById = (req, res) => {
-  console.log(req.params.userId);
   User.findById(req.params.userId)
     .orFail(new Error(notFoundError))
     .then((user) => {
