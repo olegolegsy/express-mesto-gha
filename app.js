@@ -1,35 +1,46 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const { errors } = require('celebrate');
+const auth = require('./middlewares/auth');
 
 const PORT = 3000;
 const DB_URL = 'mongodb://127.0.0.1:27017/mestodb';
 
 const app = express();
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+});
+
+app.use(limiter);
+app.use(helmet());
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 mongoose.connect(DB_URL);
 
-app.use((req, res, next) => {
-  req.user = { _id: '65498f44675bb4a4413f21f4' };
-  next();
-});
+app.use('/signup', require('./routes/signup'));
+app.use('/signin', require('./routes/signin'));
 
+app.use(auth);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
+app.use(errors());
+
+app.use((err, req, res) => {
+  const { statusCode = 500, message } = err;
+
+  res.status(statusCode).send({
+    message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
+  });
+});
+
 app.listen(PORT);
 
-// если объект не найдет, то вернется код ответа 500
-// нужно добавлять тест сообщения и по нему обрабатывать ошибку
-// в блоке catch
-
-// имя ошибки NotFound, код статуса 404, кастомная через orFail
-// ключ 24 символа, как и ожидается, но такого юзера или карточки просто нет в базе
-
-// ошибка CastError возникает когда переданные данные отличаются от
-// ожидаемых в схеме (валидация) (например, ключ 24 символа, а мы передали 23 или 25)
-// имя ошибки CastError, код доступа 400
-
-// 65498f44675bb4a4413f21f4
+// нужен ли модуль validator?

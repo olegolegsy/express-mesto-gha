@@ -1,35 +1,21 @@
+const mongoose = require('mongoose');
 const Card = require('../models/card');
+const BadRequestError = require('../errors/BadRequestError');
+const NotFoundError = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
-const ERROR_500 = 500;
-const ERROR_404 = 404;
-const ERROR_400 = 400;
-
-const validError = 'ValidationError';
-const castError = 'CastError';
 const notFoundError = 'NotFound';
 
-const handelError500 = (res) => {
-  res.status(ERROR_500).send({ message: 'На сервере произошла ошибка' });
-};
-
-const handelError404 = (res) => {
-  res.status(ERROR_404).send({ message: 'Карточки по _id не нашли' });
-};
-
-const handelError400 = (res) => {
-  res.status(ERROR_400).send({ message: 'Некорректный _id карточки' });
-};
-
 // get 500
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((cards) => res.send(cards))
-    .catch(() => handelError500(res));
+    .catch((err) => next(err));
 };
 
 // post 400 500
-const addNewCard = (req, res) => {
+const addNewCard = (req, res, next) => {
   const { name, link } = req.body;
 
   Card.create({ name, link, owner: req.user._id })
@@ -37,37 +23,48 @@ const addNewCard = (req, res) => {
       Card.findById(card._id)
         .populate('owner')
         .then((data) => res.status(201).send(data))
-        .catch(() => handelError404(res));
+        .catch(() => next(new NotFoundError('Карточки по _id не нашли')));
     })
     .catch((err) => {
-      if (err.name === validError) {
-        res.status(ERROR_400).send({ message: err.message });
+      if (err instanceof mongoose.Error.ValidationError) {
+        next(new BadRequestError({ message: err.message }));
       } else {
-        handelError500(res);
+        next(err);
       }
     });
 };
 
 // delete 404 500
-const delCard = (req, res) => {
+const delCard = (req, res, next) => {
   const { cardId } = req.params;
 
-  Card.findByIdAndDelete(cardId)
+  Card.findById(cardId)
     .orFail(new Error(notFoundError))
-    .then(() => {
-      res.send({ message: 'Карточка удалена' });
+    .then((card) => {
+      if (!card.owner.equals(req.user._id)) {
+        throw new ForbiddenError('Вы не можете удалить чужую карточку');
+      } else {
+        Card.deleteOne(cardId)
+          .orFail(new Error(notFoundError))
+          .then(() => {
+            res.send({ message: 'Карточка удалена' });
+          })
+          .catch((err) => {
+            next(err);
+          });
+      }
     })
     .catch((err) => {
-      if (err.message === notFoundError) {
-        handelError404(res);
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError('Карточки по _id не нашли'));
       } else {
-        handelError500(res);
+        next(err);
       }
     });
 };
 
 // 400 404 500
-const addLike = (req, res) => {
+const addLike = (req, res, next) => {
   const { cardId } = req.params;
 
   Card.findByIdAndUpdate(
@@ -81,18 +78,18 @@ const addLike = (req, res) => {
       res.send(card);
     })
     .catch((err) => {
-      if (err.message === notFoundError) {
-        handelError404(res);
-      } else if (err.name === castError) {
-        handelError400(res);
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError('Карточки по _id не нашли'));
+      } else if (err instanceof mongoose.Error.ValidationError) {
+        next(new BadRequestError('Некорректный _id карточки'));
       } else {
-        handelError500(res);
+        next(err);
       }
     });
 };
 
 // 400 404 500
-const removeLike = (req, res) => {
+const removeLike = (req, res, next) => {
   const { cardId } = req.params;
 
   Card.findByIdAndUpdate(
@@ -106,12 +103,12 @@ const removeLike = (req, res) => {
       res.send(card);
     })
     .catch((err) => {
-      if (err.message === notFoundError) {
-        handelError404(res);
-      } else if (err.name === castError) {
-        handelError400(res);
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError('Карточки по _id не нашли'));
+      } else if (err instanceof mongoose.Error.ValidationError) {
+        next(new BadRequestError('Некорректный _id карточки'));
       } else {
-        handelError500(res);
+        next(err);
       }
     });
 };
