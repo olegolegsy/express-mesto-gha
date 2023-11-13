@@ -42,5 +42,3 @@ app.use((err, req, res) => {
 });
 
 app.listen(PORT);
-
-// нужен ли модуль validator?
