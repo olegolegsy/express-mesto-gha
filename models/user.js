@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema(
       validate: {
         validator(v) {
           return /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_+.~#?&/=]*)$/.test(
-            v,
+            v
           );
         },
         message: 'Введите URL',
@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema(
       validate: {
         validator(v) {
           return /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-            v,
+            v
           );
         },
         message: 'Введите email',
@@ -49,24 +49,25 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
   },
-  { versionKey: false },
+  { versionKey: false }
 );
 
-userSchema.statics.findUserByCredentials = function (email, password) {
-  return this.findOne(email)
+userSchema.statics.findUserByCredentials = async function findUserByCredentials(
+  email,
+  password
+) {
+  return this.findOne({ email })
     .select('+password')
     .then((user) => {
       if (!user) {
-        throw new UnauthorizedError('Неверные почта или пароль');
-      } else {
-        return bcrypt.compare(password, user.password).then((matched) => {
-          if (!matched) {
-            throw new UnauthorizedError('Неверные почта или пароль');
-          } else {
-            return user;
-          }
-        });
+        throw new UnauthorizedError('Неправильные почта или пароль');
       }
+      return bcrypt.compare(password, user.password).then((matched) => {
+        if (!matched) {
+          throw new UnauthorizedError('Неправильные почта или пароль');
+        }
+        return user;
+      });
     });
 };
 
