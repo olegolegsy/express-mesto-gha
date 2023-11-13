@@ -40,7 +40,6 @@ const delCard = (req, res, next) => {
   const { cardId } = req.params;
 
   Card.findById(cardId)
-    .orFail(new Error(notFoundError))
     .then((card) => {
       if (!card.owner.equals(req.user._id)) {
         throw new ForbiddenError('Вы не можете удалить чужую карточку');
