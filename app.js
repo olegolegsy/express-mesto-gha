@@ -31,7 +31,7 @@ app.use('/signin', require('./routes/signin'));
 app.use('/users', auth, require('./routes/users'));
 app.use('/cards', auth, require('./routes/cards'));
 
-app.use('*', () => {
+app.use('*', (req, res, next) => {
   next(NotFoundError('такой страницы нет'));
 });
 
