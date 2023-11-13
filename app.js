@@ -27,7 +27,7 @@ mongoose.connect(DB_URL);
 
 app.use('/signup', require('./routes/signup'));
 app.use('/signin', require('./routes/signin'));
-//app.use(auth);
+app.use(auth);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
@@ -37,12 +37,14 @@ app.use('*', (req, res, next) => {
 
 app.use(errors());
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
 
   res.status(statusCode).send({
     message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
   });
+
+  next();
 });
 
 app.listen(PORT);
