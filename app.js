@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { errors } = require('celebrate');
 const auth = require('./middlewares/auth');
+const NotFoundError = require('./errors/NotFoundError');
 
 const PORT = 3000;
 const DB_URL = 'mongodb://127.0.0.1:27017/mestodb';
@@ -30,6 +31,10 @@ app.use('/signin', require('./routes/signin'));
 app.use(auth);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
+
+app.use('*', (req, res) => {
+  throw new NotFoundError('такой страницы нет');
+});
 
 app.use(errors());
 
