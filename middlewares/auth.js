@@ -5,7 +5,7 @@ module.exports = (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    throw new UnauthorizedError({ message: err.message });
+    throw new UnauthorizedError({ message: 'Авторизуйся' });
   }
 
   const token = authorization.replace('Bearer ', '');
@@ -14,7 +14,7 @@ module.exports = (req, res, next) => {
   try {
     payload = jwt.verify(token, 'mesto');
   } catch (err) {
-    throw new UnauthorizedError({ message: err.message });
+    throw new UnauthorizedError({ message: 'Авторизуйся' });
   }
 
   req.user = payload;
