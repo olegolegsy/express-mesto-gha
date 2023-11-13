@@ -37,29 +37,25 @@ const addNewCard = (req, res, next) => {
 
 // delete 404 500
 const delCard = (req, res, next) => {
-  const { cardId } = req.params;
-
-  Card.findById(cardId)
-    .orFail(new Error(notFoundError))
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card.owner.equals(req.user._id)) {
-        throw new ForbiddenError('Вы не можете удалить чужую карточку');
-      } else {
-        Card.deleteOne(cardId)
-          .orFail(new Error(notFoundError))
-          .then(() => {
-            res.status(200).send({ message: 'Карточка удалена' });
-          })
-          .catch((err) => {
-            if (err.message === notFoundError) {
-              next(new NotFoundError('Карточки по _id не нашли'));
-            } else if (err instanceof mongoose.Error.ValidationError) {
-              next(new BadRequestError('Некорректный _id карточки'));
-            } else {
-              next(err);
-            }
-          });
+        throw new ForbiddenError('Чужая карточка');
       }
+      Card.deleteOne(card)
+        .orFail(new Error(notFoundError))
+        .then(() => {
+          res.status(200).send({ message: 'Карточка удалена' });
+        })
+        .catch((err) => {
+          if (err.message === notFoundError) {
+            next(new NotFoundError('Карточки по _id не нашли'));
+          } else if (err instanceof mongoose.Error.CastError) {
+            next(new BadRequestError('Некорректный _id карточки'));
+          } else {
+            next(err);
+          }
+        });
     })
     .catch((err) => {
       if (err.name === 'TypeError') {
@@ -77,7 +73,7 @@ const addLike = (req, res, next) => {
   Card.findByIdAndUpdate(
     cardId,
     { $addToSet: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .orFail(new Error(notFoundError))
     .populate(['owner', 'likes'])
@@ -102,7 +98,7 @@ const removeLike = (req, res, next) => {
   Card.findByIdAndUpdate(
     cardId,
     { $pull: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .orFail(new Error(notFoundError))
     .populate(['owner', 'likes'])
