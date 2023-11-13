@@ -21,6 +21,7 @@ const addNewCard = (req, res, next) => {
   Card.create({ name, link, owner: req.user._id })
     .then((card) => {
       Card.findById(card._id)
+        .orFail(new Error(notFoundError))
         .populate('owner')
         .then((data) => res.status(201).send(data))
         .catch(() => next(new NotFoundError('Карточки по _id не нашли')));
@@ -70,7 +71,7 @@ const addLike = (req, res, next) => {
   Card.findByIdAndUpdate(
     cardId,
     { $addToSet: { likes: req.user._id } },
-    { new: true },
+    { new: true }
   )
     .orFail(new Error(notFoundError))
     .populate(['owner', 'likes'])
@@ -95,7 +96,7 @@ const removeLike = (req, res, next) => {
   Card.findByIdAndUpdate(
     cardId,
     { $pull: { likes: req.user._id } },
-    { new: true },
+    { new: true }
   )
     .orFail(new Error(notFoundError))
     .populate(['owner', 'likes'])
