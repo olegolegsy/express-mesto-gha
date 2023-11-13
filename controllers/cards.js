@@ -51,7 +51,13 @@ const delCard = (req, res, next) => {
             res.send({ message: 'Карточка удалена' });
           })
           .catch((err) => {
-            next(err);
+            if (err instanceof mongoose.Error.DocumentNotFoundError) {
+              next(new NotFoundError('Карточки по _id не нашли'));
+            } else if (err instanceof mongoose.Error.ValidationError) {
+              next(new BadRequestError('Некорректный _id карточки'));
+            } else {
+              next(err);
+            }
           });
       }
     })
