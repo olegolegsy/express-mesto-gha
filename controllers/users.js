@@ -28,7 +28,6 @@ const getUserById = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      console.log(err.message);
       if (err.message === notFoundError) {
         next(new NotFoundError('Пользователь по такому _id не найден'));
       } else {
