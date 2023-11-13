@@ -28,7 +28,8 @@ const getUserById = (req, res, next) => {
       res.send(user);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+      console.log(err.message);
+      if (err.message === notFoundError) {
         next(new NotFoundError('Пользователь по такому _id не найден'));
       } else {
         next(err);
@@ -123,7 +124,7 @@ const login = (req, res, next) => {
       const token = jwt.sign({ _id: user._id }, 'mesto', {
         expiresIn: '7d',
       });
-      res.status(201).send({ token });
+      res.status(200).send({ token });
     })
     .catch((err) => next(err));
 };

@@ -47,10 +47,10 @@ const delCard = (req, res, next) => {
         Card.deleteOne(cardId)
           .orFail(new Error(notFoundError))
           .then(() => {
-            res.send({ message: 'Карточка удалена' });
+            res.status(200).send({ message: 'Карточка удалена' });
           })
           .catch((err) => {
-            if (err instanceof mongoose.Error.DocumentNotFoundError) {
+            if (err.message === notFoundError) {
               next(new NotFoundError('Карточки по _id не нашли'));
             } else if (err instanceof mongoose.Error.ValidationError) {
               next(new BadRequestError('Некорректный _id карточки'));
@@ -61,7 +61,7 @@ const delCard = (req, res, next) => {
       }
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+      if (err.message === notFoundError) {
         next(new NotFoundError('Карточки по _id не нашли'));
       } else {
         next(err);
@@ -81,10 +81,10 @@ const addLike = (req, res, next) => {
     .orFail(new Error(notFoundError))
     .populate(['owner', 'likes'])
     .then((card) => {
-      res.send(card);
+      res.status(200).send(card);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+      if (err.message === notFoundError) {
         next(new NotFoundError('Карточки по _id не нашли'));
       } else if (err instanceof mongoose.Error.ValidationError) {
         next(new BadRequestError('Некорректный _id карточки'));
@@ -106,10 +106,10 @@ const removeLike = (req, res, next) => {
     .orFail(new Error(notFoundError))
     .populate(['owner', 'likes'])
     .then((card) => {
-      res.send(card);
+      res.status(200).send(card);
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+      if (err.message === notFoundError) {
         next(new NotFoundError('Карточки по _id не нашли'));
       } else if (err instanceof mongoose.Error.ValidationError) {
         next(new BadRequestError('Некорректный _id карточки'));
