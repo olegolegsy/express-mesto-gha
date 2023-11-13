@@ -28,11 +28,10 @@ mongoose.connect(DB_URL);
 app.use('/signup', require('./routes/signup'));
 app.use('/signin', require('./routes/signin'));
 
-app.use(auth);
-app.use('/users', require('./routes/users'));
-app.use('/cards', require('./routes/cards'));
+app.use('/users', auth, require('./routes/users'));
+app.use('/cards', auth, require('./routes/cards'));
 
-app.use('*', (req, res) => {
+app.use('*', () => {
   throw new NotFoundError('такой страницы нет');
 });
 
