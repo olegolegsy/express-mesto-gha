@@ -38,16 +38,28 @@ const getUserById = (req, res, next) => {
 
 // post 400 500
 const addNewUser = (req, res, next) => {
-  const {
-    name, about, avatar, email, password,
-  } = req.body;
+  const { name, about, avatar, email, password } = req.body;
 
   bcrypt
     .hash(password, 10)
-    .then((hash) => User.create({
-      name, about, avatar, email, password: hash,
-    }))
-    .then((user) => res.status(201).send(user))
+    .then((hash) =>
+      User.create({
+        name,
+        about,
+        avatar,
+        email,
+        password: hash,
+      })
+    )
+    .then((user) =>
+      res.status(201).send({
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        _id: user._id,
+        email: user.email,
+      })
+    )
     .catch((err) => {
       if (err.code === 11000) {
         next(new ConflictError('Пользователь с таким email уже есть'));
@@ -66,7 +78,7 @@ const editUserInfo = (req, res, next) => {
   User.findByIdAndUpdate(
     req.user._id,
     { name, about },
-    { new: true, runValidators: true },
+    { new: true, runValidators: true }
   )
     .orFail(new Error(notFoundError))
     .then((user) => res.send(user))
@@ -88,7 +100,7 @@ const editUserAvatar = (req, res, next) => {
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
-    { new: 'true', runValidators: true },
+    { new: 'true', runValidators: true }
   )
     .orFail(new Error(notFoundError))
     .then((user) => res.send(user))
