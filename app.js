@@ -32,7 +32,7 @@ app.use('/users', auth, require('./routes/users'));
 app.use('/cards', auth, require('./routes/cards'));
 
 app.use('*', (req, res, next) => {
-  next(NotFoundError('такой страницы нет'));
+  next(new NotFoundError('такой страницы нет'));
 });
 
 app.use(errors());
